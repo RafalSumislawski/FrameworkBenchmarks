@@ -1,9 +1,10 @@
 package http4s.techempower.benchmark
 
-import java.util.concurrent.Executors
+import cats.effect.internals.IOAppPlatform
 
+import java.util.concurrent.{Executors, ForkJoinPool}
 import scala.concurrent.ExecutionContext
-import cats.effect.{ExitCode, IO, IOApp, Resource}
+import cats.effect.{ContextShift, ExitCode, IO, IOApp, Resource, Timer}
 import com.typesafe.config.ConfigValueFactory
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -33,6 +34,7 @@ object Queries {
 }
 
 object WebServer extends IOApp with Http4sDsl[IO] {
+
   def makeDatabaseService(
       host: String,
       poolSize: Int
@@ -95,15 +97,25 @@ object WebServer extends IOApp with Http4sDsl[IO] {
         } yield newWorlds.asJson)
     })
 
-  val blazeEc = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(32))
-
   // Given a fully constructed HttpService, start the server and wait for completion
   def startServer(service: HttpRoutes[IO]) =
-    BlazeServerBuilder[IO](blazeEc)
-      .bindHttp(8080, "0.0.0.0")
-      .withHttpApp(Router("/" -> service).orNotFound)
-      .withSocketKeepAlive(true)
-      .resource
+    BlazeServerBuilder[IO] (executionContext)
+    .bindHttp(8080, "0.0.0.0")
+    .withHttpApp(Router("/" -> service).orNotFound)
+    .withSocketKeepAlive(true)
+    .resource
+
+  implicit override val executionContext: ExecutionContext = {
+    val fjp = new ForkJoinPool()
+    ExecutionContext.fromExecutor(fjp)
+  }
+
+  implicit override val contextShift: ContextShift[IO] =
+    IO.contextShift(executionContext)
+
+
+  implicit override val timer: Timer[IO] =
+    IO.timer(executionContext)
 
   // Entry point when starting service
   override def run(args: List[String]): IO[ExitCode] =
