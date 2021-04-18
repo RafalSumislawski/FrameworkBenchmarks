@@ -1,7 +1,5 @@
 package http4s.techempower.benchmark
 
-import cats.effect.internals.IOAppPlatform
-
 import java.util.concurrent.{Executors, ForkJoinPool}
 import scala.concurrent.ExecutionContext
 import cats.effect.{ContextShift, ExitCode, IO, IOApp, Resource, Timer}
@@ -70,7 +68,7 @@ object WebServer extends IOApp with Http4sDsl[IO] {
 
   // HTTP service definition
   def service(db: DatabaseService) =
-    addServerHeader(HttpRoutes.of[IO] {
+    addServerHeader(HttpRoutes.strict[IO] {
       case GET -> Root / "plaintext" =>
         Ok("Hello, World!")
 
