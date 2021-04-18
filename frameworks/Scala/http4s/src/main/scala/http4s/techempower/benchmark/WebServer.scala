@@ -100,10 +100,11 @@ object WebServer extends IOApp with Http4sDsl[IO] {
   // Given a fully constructed HttpService, start the server and wait for completion
   def startServer(service: HttpRoutes[IO]) =
     BlazeServerBuilder[IO] (executionContext)
-    .bindHttp(8080, "0.0.0.0")
-    .withHttpApp(Router("/" -> service).orNotFound)
-    .withSocketKeepAlive(true)
-    .resource
+      .bindHttp(8080, "0.0.0.0")
+      .withHttpApp(Router("/" -> service).orNotFound)
+      .withSocketKeepAlive(true)
+      .withMaxConnections(16 * 1024)
+      .resource
 
   implicit override val executionContext: ExecutionContext = {
     val fjp = new ForkJoinPool()
@@ -112,7 +113,6 @@ object WebServer extends IOApp with Http4sDsl[IO] {
 
   implicit override val contextShift: ContextShift[IO] =
     IO.contextShift(executionContext)
-
 
   implicit override val timer: Timer[IO] =
     IO.timer(executionContext)
