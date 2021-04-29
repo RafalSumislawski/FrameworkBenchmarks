@@ -97,7 +97,7 @@ object WebServer extends IOApp with Http4sDsl[IO] {
 
   // Given a fully constructed HttpService, start the server and wait for completion
   def startServer(service: HttpRoutes[IO]) =
-    BlazeServerBuilder[IO] (executionContext)
+    BlazeServerBuilder[IO] (http4sEc)
       .bindHttp(8080, "0.0.0.0")
       .withHttpApp(Router("/" -> service).orNotFound)
       .withSocketKeepAlive(true)
@@ -114,6 +114,10 @@ object WebServer extends IOApp with Http4sDsl[IO] {
 
   implicit override val timer: Timer[IO] =
     IO.timer(executionContext)
+
+  val http4sEc = {
+    executionContext
+  }
 
   // Entry point when starting service
   override def run(args: List[String]): IO[ExitCode] =

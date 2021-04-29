@@ -1,17 +1,20 @@
 FROM adoptopenjdk/openjdk11:x86_64-alpine-jre-11.0.3_7
 RUN apk add bash
 WORKDIR /blaze
-COPY project project
-COPY src src
-COPY build.sbt build.sbt
-COPY sbt sbt
-RUN ./sbt assembly -batch && \
-    mv target/scala-2.12/blaze-assembly-1.0.jar . && \
-    rm -Rf target && \
-    rm -Rf project/target && \
-    rm -Rf ~/.sbt && \
-    rm -Rf ~/.ivy2 && \
-    rm -Rf /var/cache
+# COPY project project
+# COPY src src
+# COPY build.sbt build.sbt
+# COPY sbt sbt
+# RUN ./sbt assembly -batch && \
+#     mv target/scala-2.12/blaze-assembly-1.0.jar . && \
+#     rm -Rf target && \
+#     rm -Rf project/target && \
+#     rm -Rf ~/.sbt && \
+#     rm -Rf ~/.ivy2 && \
+#     rm -Rf /var/cache
+
+COPY target/scala-2.13/blaze-assembly-1.0.jar .
+COPY async-profiler-2.0-linux-x64 /async-profiler
 
 EXPOSE 8080
 
