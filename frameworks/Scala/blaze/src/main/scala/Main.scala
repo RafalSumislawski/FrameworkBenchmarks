@@ -23,7 +23,7 @@ object Main {
   private val jsonHeaders = Seq("server" -> "blaze", "content-type" -> "application/json")
   private val plaintextHeaders = Seq("server" -> "blaze", "content-type" -> "text/plain")
 
-  private implicit val codec: JsonValueCodec[Message] = JsonCodecMaker.make[Message](CodecMakerConfig())
+  private implicit val codec: JsonValueCodec[Message] = JsonCodecMaker.make[Message](CodecMakerConfig)
 
   def serve(request: HttpRequest): Future[RouteAction] = Future.successful {
     request.url match {

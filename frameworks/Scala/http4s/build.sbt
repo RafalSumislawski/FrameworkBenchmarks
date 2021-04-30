@@ -30,9 +30,9 @@ enablePlugins(SbtTwirl)
 val http4sVersion = "0.22-96-878e844-SNAPSHOT" // this is 1.0.0
 
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy := {
   case PathList(xs @ _*) if xs.last == "io.netty.versions.properties" => MergeStrategy.rename
-  case other => (assemblyMergeStrategy in assembly).value(other)
+  case other => (assembly / assemblyMergeStrategy).value(other)
 }
 
 libraryDependencies ++= Seq(
