@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-circe" % http4sVersion,
   // Optional for auto-derivation of JSON codecs
   "io.circe" %% "circe-generic" % "0.14.0-M5",
-//  "org.typelevel" %% "cats-effect" % "2.4.1",
+  "org.typelevel" %% "cats-effect" % "3.1.0",
 //  "co.fs2" %% "fs2-core" % "2.5.4",
 //  "co.fs2" %% "fs2-io" % "2.5.4",
   "io.getquill" %% "quill-jasync-postgres" % "3.7.0",

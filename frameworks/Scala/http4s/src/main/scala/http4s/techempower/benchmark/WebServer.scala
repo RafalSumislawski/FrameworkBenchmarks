@@ -2,7 +2,7 @@ package http4s.techempower.benchmark
 
 import java.util.concurrent.{Executors, ForkJoinPool}
 import scala.concurrent.ExecutionContext
-import cats.effect.{ContextShift, ExitCode, IO, IOApp, Resource, Timer}
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import com.typesafe.config.ConfigValueFactory
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -12,6 +12,7 @@ import io.getquill.PostgresJAsyncContext
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.circe._
+import org.http4s.headers.Server
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -63,7 +64,7 @@ object WebServer extends IOApp with Http4sDsl[IO] {
   // Add Server header container server address
   def addServerHeader(service: HttpRoutes[IO]): HttpRoutes[IO] =
     cats.data.Kleisli { req: Request[IO] =>
-      service.run(req).map(_.putHeaders(Header("Server", req.serverAddr)))
+      service.run(req).map(_.putHeaders(Server(ProductId("http4s-blaze"))))
     }
 
   // HTTP service definition
@@ -97,27 +98,14 @@ object WebServer extends IOApp with Http4sDsl[IO] {
 
   // Given a fully constructed HttpService, start the server and wait for completion
   def startServer(service: HttpRoutes[IO]) =
-    BlazeServerBuilder[IO] (http4sEc)
+    BlazeServerBuilder[IO] (fjp)
       .bindHttp(8080, "0.0.0.0")
       .withHttpApp(Router("/" -> service).orNotFound)
       .withSocketKeepAlive(true)
       .withMaxConnections(16 * 1024)
       .resource
 
-  implicit override val executionContext: ExecutionContext = {
-    val fjp = new ForkJoinPool()
-    ExecutionContext.fromExecutor(fjp)
-  }
-
-  implicit override val contextShift: ContextShift[IO] =
-    IO.contextShift(executionContext)
-
-  implicit override val timer: Timer[IO] =
-    IO.timer(executionContext)
-
-  val http4sEc = {
-    executionContext
-  }
+  val fjp = ExecutionContext.fromExecutor(new ForkJoinPool(12))
 
   // Entry point when starting service
   override def run(args: List[String]): IO[ExitCode] =
